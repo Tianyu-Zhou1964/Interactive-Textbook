@@ -21,7 +21,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip && \
     pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
-# 复制后端源代码和本地模型/数据
+# 复制后端源代码
 COPY . .
 
 # 暴露 FastAPI 默认端口

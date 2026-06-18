@@ -1,7 +1,10 @@
 # 1. 屏蔽敏感信息（最重要！）
 .env
 .env*
+# 但放行各类 .env 模板（不含真实值）
 !.env.example
+!*.env.example
+!.env.local.example
 
 # 2. 屏蔽 Python 相关
 backend/venv/
