@@ -1,0 +1,37 @@
+# 1. 屏蔽敏感信息（最重要！）
+.env
+.env*
+!.env.example
+
+# 2. 屏蔽 Python 相关
+backend/venv/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# 3. 屏蔽 Node.js 相关
+web/node_modules/
+web/.next/
+web/out/
+web/build/
+node_modules/
+
+# 4. 屏蔽系统文件与编辑器配置
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 5. 屏蔽本地模型与大型备份文件
+backend/local_model/
+passion_project.tar.gz
+book/
+
+# 6. 屏蔽日志文件
+*.log
+access.log
+
+# 7. 屏蔽本地环境与个人笔记
+.envrc
+开发日志/

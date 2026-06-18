@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 修复 prose 文本颜色对比度不足的问题 */
+.prose {
+  color: #1a1a1a !important;
+}
+.dark .prose {
+  color: #e0e0e0 !important;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  color: #0a0a0a !important;
+  font-weight: 700;
+}
+.dark .prose h1, .dark .prose h2, .dark .prose h3, .dark .prose h4, .dark .prose h5, .dark .prose h6 {
+  color: #f0f0f0 !important;
+}
+
+.prose p, .prose li, .prose td, .prose th {
+  color: #2a2a2a !important;
+}
+.dark .prose p, .dark .prose li, .dark .prose td, .dark .prose th {
+  color: #d0d0d0 !important;
+}
+
+.prose strong {
+  color: #000000 !important;
+  font-weight: 700;
+}
+.dark .prose strong {
+  color: #ffffff !important;
+}
+
+.prose code {
+  color: #c7254e !important;
+  background-color: #f9f2f4 !important;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+.dark .prose code {
+  color: #f5a5b5 !important;
+  background-color: #3a1a24 !important;
+}
+
+.prose pre {
+  background-color: #f5f5f5 !important;
+  color: #333 !important;
+}
+.dark .prose pre {
+  background-color: #1e1e1e !important;
+  color: #d4d4d4 !important;
+}
+
+.prose a {
+  color: #2563eb !important;
+  text-decoration: underline;
+}
+.dark .prose a {
+  color: #60a5fa !important;
+}
+
+/* KaTeX 公式渲染确保可见 */
+.katex {
+  color: #000000 !important;
+}
+.dark .katex {
+  color: #ffffff !important;
+}
+
+/* 修复 prose-sm（ChatBox 用）的颜色 */
+.prose-sm {
+  color: #1a1a1a !important;
+}
+.dark .prose-sm {
+  color: #e0e0e0 !important;
+}
+
+.prose-sm h1, .prose-sm h2, .prose-sm h3, .prose-sm h4 {
+  color: #0a0a0a !important;
+  font-weight: 700;
+}
+.dark .prose-sm h1, .dark .prose-sm h2, .dark .prose-sm h3, .dark .prose-sm h4 {
+  color: #f0f0f0 !important;
+}
+
+.prose-sm p, .prose-sm li {
+  color: #2a2a2a !important;
+}
+.dark .prose-sm p, .dark .prose-sm li {
+  color: #d0d0d0 !important;
+}
+
+.prose-sm strong {
+  color: #000000 !important;
+}
+.dark .prose-sm strong {
+  color: #ffffff !important;
+}
+
+.prose-sm code {
+  color: #c7254e !important;
+  background-color: #f9f2f4 !important;
+}
+.dark .prose-sm code {
+  color: #f5a5b5 !important;
+  background-color: #3a1a24 !important;
+}
+
+/* ========================================= */
+/* PRINT STYLES - PDF Generation             */
+/* ========================================= */
+@media print {
+  /* Hide non-printable elements */
+  /* SidebarLeft, SidebarRight, Toolbar, Buttons */
+  nav, 
+  aside, 
+  header,
+  button:not(.print-visible),
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset layout variables */
+  :root, .dark {
+    --background: #ffffff !important;
+    --foreground: #000000 !important;
+  }
+
+  /* Force Body Background */
+  body {
+    background-color: transparent !important;
+    color: #000000 !important;
+  }
+
+  /* Force Main Content Visibility & Layout */
+  #main-content-area {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+  }
+  
+  /* Reset Text Colors & Backgrounds for Dark Mode Compatibility */
+  .dark .bg-gray-900, .bg-gray-900,
+  .dark .bg-gray-950, .bg-gray-950,
+  .dark .bg-black, .bg-black,
+  .bg-white, .dark .bg-white {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border: none !important;
+  }
+
+  .dark .text-gray-100, .text-gray-100,
+  .dark .text-gray-200, .text-gray-200,
+  .dark .text-gray-300, .text-gray-300,
+  .dark .text-white, .text-white {
+    color: #000000 !important;
+  }
+
+  /* Force borders to be light/visible */
+  .border, .border-b, .border-t, .border-l, .border-r {
+    border-color: #e5e5e5 !important;
+  }
+
+  /* Syntax Highlighting Adjustments for Print */
+  pre {
+    background-color: #f5f5f5 !important;
+    color: #000000 !important;
+    border: 1px solid #ddd !important;
+    white-space: pre-wrap !important; /* Wrap long lines */
+  }
+  
+  code {
+    color: #d63384 !important;
+  }
+  
+  /* Force code block text to be black for readability (overriding syntax highlighting) */
+  pre span, code span {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+
+  /* Markdown Content Adjustments */
+  h1, h2, h3, h4, h5, h6 {
+    color: #000000 !important;
+    page-break-after: avoid;
+  }
+
+  p, li, div {
+    color: #000000 !important;
+  }
+
+  /* Ensure content visibility and layout */
+  #main-content-area {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+  }
+  
+  /* Reset margins for content */
+  .ml-64, .mr-80, .mr-0 {
+    margin: 0 !important;
+  }
+}

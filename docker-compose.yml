@@ -1,0 +1,30 @@
+services:
+  # 前端服务
+  web:
+    build:
+      context: ./web
+      args:
+        - NEXT_PUBLIC_API_URL=https://api.passionie.uk
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: always
+    depends_on:
+      - api
+
+  # 后端服务
+  api:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    restart: always
+    volumes:
+      - ./book:/app/book:ro
+
+networks:
+  default:
+    name: passion_network
