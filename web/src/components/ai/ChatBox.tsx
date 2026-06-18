@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Send, User, Trash2, Square } from 'lucide-react'
+import { Send, User, Trash2, Square, Eye, EyeOff } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
@@ -36,6 +36,8 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
   const [messages, setMessages] = useState<Message[]>([initialGreeting])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  // 视觉功能开关：开启后每次提问会截取当前页面发给模型。默认关闭，由用户在对话框内切换。
+  const [visionEnabled, setVisionEnabled] = useState(visionSync)
   const scrollRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
@@ -134,10 +136,10 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
     // Vision Sync Logic
     let imageData: string | null = null
     
-    if (visionSync) {
-      // Always capture fresh screenshot for every message
+    if (visionEnabled) {
+      // 视觉开启：每次提问都重新截取当前页面
       imageData = await captureScreen()
-      
+
       if (!imageData) {
         console.warn('[ChatBox] ⚠️ Screenshot capture returned null, sending text only.')
       }
@@ -155,7 +157,7 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
       console.log('[ChatBox] 📤 Sending request to backend...', { 
         url: chatStreamUrl,
         query: userText.substring(0, 50),
-        visionSync: visionSync,
+        visionEnabled: visionEnabled,
         hasImage: !!imageData,
         imageSizeKB: imageData ? Math.round(imageData.length / 1024) : 0
       })
@@ -267,13 +269,32 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
             <p className="text-xs text-gray-500 dark:text-gray-400">{loading ? (lang === 'en' ? 'Thinking...' : '思考中...') : (lang === 'en' ? 'Online' : '在线')}</p>
           </div>
         </div>
-        <button 
-          onClick={() => setMessages([initialGreeting])}
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
-          title="清空对话"
-        >
-          <Trash2 size={18} className="text-gray-500 dark:text-gray-400" />
-        </button>
+        <div className="flex items-center gap-1">
+          {/* 视觉开关：开启后提问会把当前页面截图一并发给模型 */}
+          <button
+            onClick={() => setVisionEnabled(v => !v)}
+            className={`p-2 rounded-full transition-colors ${
+              visionEnabled
+                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'
+            }`}
+            title={
+              visionEnabled
+                ? (lang === 'en' ? 'Vision ON: I can see your current page' : '视觉已开启：我能看到你当前的页面')
+                : (lang === 'en' ? 'Vision OFF: click to let me see your page' : '视觉已关闭：点击让我看你的页面')
+            }
+            aria-pressed={visionEnabled}
+          >
+            {visionEnabled ? <Eye size={18} /> : <EyeOff size={18} />}
+          </button>
+          <button
+            onClick={() => setMessages([initialGreeting])}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            title={lang === 'en' ? 'Clear conversation' : '清空对话'}
+          >
+            <Trash2 size={18} className="text-gray-500 dark:text-gray-400" />
+          </button>
+        </div>
       </div>
 
       {/* Message List */}
