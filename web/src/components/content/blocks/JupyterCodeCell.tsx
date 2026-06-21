@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Play, Copy, Check, Square, Trash2 } from 'lucide-react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -18,6 +19,7 @@ interface JupyterCodeCellProps {
 }
 
 export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onDelete }: JupyterCodeCellProps) {
+  const t = useTranslations('codeCell')
   const [copied, setCopied] = useState(false)
   const [editableCode, setEditableCode] = useState(() => extractCodeContent(content))
   const [localResult, setLocalResult] = useState<ExecutionResult | null>(null)
@@ -71,19 +73,19 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
           <span className={`text-xs font-mono px-2 py-1 rounded ${
             isInteractive ? 'bg-indigo-600 text-white' : 'bg-gray-700 text-gray-400'
           }`}>
-            {isInteractive ? '✨ New' : `In [${cellIndex + 1}]`}
+            {isInteractive ? t('new') : t('inLabel', { index: cellIndex + 1 })}
           </span>
           <span className="text-xs text-gray-400">{language}</span>
 
           {/* Pyodide 状态：浏览器内运行时，首次点击 Run 才惰性加载 */}
           {pyodideLoading && (
-            <span className="text-xs text-yellow-400 animate-pulse">{loadProgress || '加载中...'}</span>
+            <span className="text-xs text-yellow-400 animate-pulse">{loadProgress || t('loading')}</span>
           )}
           {loadError && !pyodideLoading && (
-            <span className="text-xs text-red-400" title={loadError}>加载失败</span>
+            <span className="text-xs text-red-400" title={loadError}>{t('loadFailed')}</span>
           )}
           {isReady && !pyodideLoading && (
-            <span className="text-xs text-green-400">浏览器内核就绪</span>
+            <span className="text-xs text-green-400">{t('kernelReady')}</span>
           )}
         </div>
 
@@ -101,12 +103,12 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
             {isRunning ? (
               <>
                 <Square size={12} className="animate-pulse" />
-                Running...
+                {t('running')}
               </>
             ) : (
               <>
                 <Play size={12} />
-                Run
+                {t('run')}
               </>
             )}
           </button>
@@ -124,7 +126,7 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
             <button
               onClick={onDelete}
               className="p-1.5 bg-red-600 hover:bg-red-500 text-white rounded transition-colors"
-              title="Delete block"
+              title={t('deleteTitle')}
             >
               <Trash2 size={12} />
             </button>
@@ -138,7 +140,7 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
           value={editableCode}
           onChange={(e) => setEditableCode(e.target.value)}
           className="w-full h-48 p-4 font-mono text-sm bg-gray-900 text-gray-100 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 block"
-          placeholder="# Enter Python code..."
+          placeholder={t('codePlaceholder')}
           spellCheck={false}
         />
       ) : (
@@ -164,9 +166,9 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
         <div className="border-t border-gray-700 bg-gray-950">
           <div className="px-4 py-1.5 bg-gray-900 border-b border-gray-800 flex items-center gap-2">
             <span className={`text-xs font-mono ${localResult.success ? 'text-gray-400' : 'text-red-400'}`}>
-              Out [{cellIndex + 1}]
+              {t('outLabel', { index: cellIndex + 1 })}
             </span>
-            {!localResult.success && <span className="text-xs text-red-400">Error</span>}
+            {!localResult.success && <span className="text-xs text-red-400">{t('error')}</span>}
           </div>
 
           {/* Stdout */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Section } from "@/lib/data-service"
 import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react"
 
@@ -11,6 +12,7 @@ interface SidebarLeftProps {
 }
 
 export function SidebarLeft({ sections, onSelect, activeSlug }: SidebarLeftProps) {
+  const t = useTranslations('sidebar')
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -35,7 +37,7 @@ export function SidebarLeft({ sections, onSelect, activeSlug }: SidebarLeftProps
           transition-all duration-300
           ${isOpen ? 'left-[272px]' : 'left-0'}
         `}
-        title={isOpen ? '收起目录' : '展开目录'}
+        title={isOpen ? t('collapse') : t('expand')}
       >
         {isOpen ? <ChevronLeft size={18} className="text-gray-600 dark:text-gray-300" /> : <ChevronRight size={18} className="text-gray-600 dark:text-gray-300" />}
         {!isOpen && <BookOpen size={16} className="text-blue-600 dark:text-blue-400" />}
@@ -60,8 +62,8 @@ export function SidebarLeft({ sections, onSelect, activeSlug }: SidebarLeftProps
               <BookOpen size={20} className="text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">目录</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{sections.length} 个章节</p>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{t('tableOfContents')}</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('sectionCount', { count: sections.length })}</p>
             </div>
           </div>
         </div>

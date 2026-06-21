@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Pencil, X, Check } from 'lucide-react'
 
 // =====================================================
@@ -17,6 +18,7 @@ export function BlockEditor({
   onCancel: () => void,
   onSubmit: (newContent: string) => void
 }) {
+  const t = useTranslations('blockEditor')
   const [value, setValue] = useState(content)
 
   return (
@@ -25,10 +27,10 @@ export function BlockEditor({
       <div className="bg-amber-50 dark:bg-amber-900/30 px-4 py-2 border-b border-amber-100 dark:border-amber-800 flex items-center justify-between">
         <span className="text-sm font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-2">
           <Pencil size={14} />
-          Editing {type === 'code' ? 'Code Block' : 'Markdown'}
+          {type === 'code' ? t('editingCode') : t('editingMarkdown')}
         </span>
         <div className="text-xs text-amber-600 dark:text-amber-400">
-          修改后提交建议
+          {t('hint')}
         </div>
       </div>
 
@@ -41,7 +43,7 @@ export function BlockEditor({
             ? 'font-mono text-sm bg-gray-900 text-gray-100'
             : 'text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-900 font-sans leading-relaxed'
         }`}
-        placeholder="Edit content..."
+        placeholder={t('contentPlaceholder')}
         autoFocus
       />
 
@@ -52,14 +54,14 @@ export function BlockEditor({
           className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-gray-100 transition-colors flex items-center gap-1"
         >
           <X size={16} />
-          Cancel
+          {t('cancel')}
         </button>
         <button
           onClick={() => onSubmit(value)}
           className="px-4 py-2 text-sm font-medium text-white bg-amber-600 border border-transparent rounded-lg hover:bg-amber-700 shadow-sm transition-all flex items-center gap-1"
         >
           <Check size={16} />
-          Submit Suggestion
+          {t('submit')}
         </button>
       </div>
     </div>

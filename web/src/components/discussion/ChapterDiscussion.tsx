@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { API_URL, authFetch } from '@/lib/api'
 import { MessageCircle, Send, X, Clock, ThumbsUp, Reply, ChevronDown, ArrowLeft, Loader2 } from 'lucide-react'
 
@@ -20,6 +21,7 @@ interface CommentCardProps {
 }
 
 function CommentCard({ comment, isReply = false }: CommentCardProps) {
+  const t = useTranslations('discussion')
   const [showReplies, setShowReplies] = useState(true)
   const [liked, setLiked] = useState(false)
   
@@ -64,7 +66,7 @@ function CommentCard({ comment, isReply = false }: CommentCardProps) {
           </button>
           <button className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors">
             <Reply size={12} />
-            回复
+            {t('reply')}
           </button>
         </div>
       </div>
@@ -77,7 +79,7 @@ function CommentCard({ comment, isReply = false }: CommentCardProps) {
             className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 ml-4 mb-2 flex items-center gap-1"
           >
             <ChevronDown size={12} className={`transition-transform ${showReplies ? 'rotate-180' : ''}`} />
-            {showReplies ? '收起' : '展开'} {comment.replies.length} 条回复
+            {showReplies ? t('collapse') : t('expand')} {t('repliesCount', { count: comment.replies.length })}
           </button>
           {showReplies && comment.replies.map(reply => (
             <CommentCard key={reply.id} comment={reply} isReply />
@@ -101,8 +103,9 @@ export function ChapterDiscussion({
   chapterTitle, 
   onClose, 
   activeBlockId,
-  onClearBlockId 
+  onClearBlockId
 }: ChapterDiscussionProps) {
+  const t = useTranslations('discussion')
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
   const [isPosting, setIsPosting] = useState(false)
@@ -126,17 +129,17 @@ export function ChapterDiscussion({
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.detail || '获取评论失败')
+        throw new Error(errorData.detail || t('fetchFailed'))
       }
-      
+
       const data = await response.json()
-      
+
       if (data.comments && Array.isArray(data.comments) && data.comments.length > 0) {
         const apiComments: Comment[] = data.comments.map((c: any) => ({
           id: c.id,
-          author: c.user_id || '匿名用户',
+          author: c.user_id || t('anonymous'),
           content: c.content,
-          timestamp: c.created_at ? new Date(c.created_at).toLocaleString('zh-CN') : '未知时间',
+          timestamp: c.created_at ? new Date(c.created_at).toLocaleString() : t('unknownTime'),
           likes: 0,
           blockId: c.block_id
         }))
@@ -146,12 +149,12 @@ export function ChapterDiscussion({
       }
     } catch (e: any) {
       console.error('[ChapterDiscussion] Fetch error:', e)
-      setError(e.message || '加载评论失败')
+      setError(e.message || t('loadFailed'))
       setComments([])
     } finally {
       setIsLoading(false)
     }
-  }, [activeBlockId])
+  }, [activeBlockId, t])
 
   useEffect(() => {
     fetchComments()
@@ -164,7 +167,7 @@ export function ChapterDiscussion({
     setIsPosting(true)
     
     if (!activeBlockId) {
-      setError('请先选择一个代码块进行评论')
+      setError(t('selectBlockFirst'))
       setIsPosting(false)
       return
     }
@@ -181,16 +184,16 @@ export function ChapterDiscussion({
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.detail || '发送评论失败')
+        throw new Error(errorData.detail || t('postFailed'))
       }
-      
+
       const data = await response.json()
-      
+
       const comment: Comment = {
         id: data.id || `new-${Date.now()}`,
-        author: data.user_id || '我',
+        author: data.user_id || t('me'),
         content: data.content || newComment,
-        timestamp: data.created_at ? new Date(data.created_at).toLocaleString('zh-CN') : '刚刚',
+        timestamp: data.created_at ? new Date(data.created_at).toLocaleString() : t('justNow'),
         likes: 0,
         blockId: activeBlockId
       }
@@ -199,7 +202,7 @@ export function ChapterDiscussion({
       setError(null)
     } catch (e: any) {
       console.error('[ChapterDiscussion] Post error:', e)
-      setError(e.message || '发送评论失败')
+      setError(e.message || t('postFailed'))
     } finally {
       setIsPosting(false)
     }
@@ -216,7 +219,7 @@ export function ChapterDiscussion({
             </div>
             <div>
               <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">
-                {activeBlockId ? '区块评论' : '章节讨论'}
+                {activeBlockId ? t('blockComments') : t('chapterDiscussion')}
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[180px]">{chapterTitle}</p>
             </div>
@@ -231,10 +234,10 @@ export function ChapterDiscussion({
         
         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
           <span className="px-2 py-0.5 bg-purple-50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-full font-medium">
-            {comments.length} 条评论
+            {t('commentCount', { count: comments.length })}
           </span>
           <span>•</span>
-          <span>{activeBlockId ? '区块讨论' : '请选择一个内容块'}</span>
+          <span>{activeBlockId ? t('blockScope') : t('selectBlockHint')}</span>
         </div>
 
         {/* Block Focus Indicator with Back Button */}
@@ -244,7 +247,7 @@ export function ChapterDiscussion({
               <div className="flex items-start gap-2">
                 <div className="mt-0.5 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></div>
                 <p className="text-xs text-indigo-700 dark:text-indigo-300">
-                  仅显示选中区块的评论
+                  {t('onlyShowSelected')}
                 </p>
               </div>
               {onClearBlockId && (
@@ -253,7 +256,7 @@ export function ChapterDiscussion({
                   className="flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium transition-colors"
                 >
                   <ArrowLeft size={12} />
-                  返回
+                  {t('back')}
                 </button>
               )}
             </div>
@@ -272,16 +275,16 @@ export function ChapterDiscussion({
         {!isLoading && !activeBlockId && (
           <div className="text-center py-12 text-gray-400 dark:text-gray-500">
             <MessageCircle size={40} className="mx-auto mb-3 opacity-50" />
-            <p className="text-sm">请点击内容块右侧的评论按钮</p>
-            <p className="text-xs mt-1">即可查看和发表该区块的评论</p>
+            <p className="text-sm">{t('clickCommentHint')}</p>
+            <p className="text-xs mt-1">{t('clickCommentSubHint')}</p>
           </div>
         )}
 
         {!isLoading && activeBlockId && comments.length === 0 && (
           <div className="text-center py-12 text-gray-400 dark:text-gray-500">
             <MessageCircle size={40} className="mx-auto mb-3 opacity-50" />
-            <p className="text-sm">暂无评论</p>
-            <p className="text-xs mt-1">成为第一个发言的人吧！</p>
+            <p className="text-sm">{t('noComments')}</p>
+            <p className="text-xs mt-1">{t('beFirst')}</p>
           </div>
         )}
 
@@ -302,14 +305,14 @@ export function ChapterDiscussion({
         {activeBlockId ? (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
-              匿
+              {t('anonymousShort')}
             </div>
             <div className="flex-1 relative">
               <input
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handlePost()}
-                placeholder="发表你的看法..."
+                placeholder={t('inputPlaceholder')}
                 disabled={isPosting}
                 className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-4 py-2.5 pr-12 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-50 dark:focus:ring-purple-900 transition-all disabled:bg-gray-50 dark:disabled:bg-gray-700"
               />
@@ -324,7 +327,7 @@ export function ChapterDiscussion({
           </div>
         ) : (
           <div className="text-center py-2 text-xs text-gray-500 dark:text-gray-400">
-            点击内容块右侧的评论按钮以添加评论
+            {t('footerHint')}
           </div>
         )}
       </div>

@@ -4,6 +4,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { SidebarLeft } from '@/components/layout/SidebarLeft'
 import { MainContent } from '@/components/content/MainContent'
@@ -33,6 +34,8 @@ type SidebarType = 'none' | 'ai' | 'discussion'
  */
 export function TextbookPlatform({ sections, initialChapterData, currentSlug }: TextbookPlatformProps) {
   const router = useRouter()
+  const t = useTranslations('platform')
+  const tChat = useTranslations('chat')
   const { lang, switchLang } = useLang()
   // sections 由服务端按当前 lang 渲染；切语言走整页跳转，故无需本地状态
 
@@ -108,7 +111,7 @@ export function TextbookPlatform({ sections, initialChapterData, currentSlug }: 
   const isSidebarOpen = activeSidebar !== 'none'
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 overflow-x-hidden">
 
       {/* ============================================ */}
       {/* 1. LEFT SIDEBAR - Table of Contents          */}
@@ -175,8 +178,8 @@ export function TextbookPlatform({ sections, initialChapterData, currentSlug }: 
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border-transparent'
               }`}
             >
-              <img src="/paipai.jpeg" alt={lang === 'en' ? 'PIE' : '派派'} className="w-5 h-5 rounded-sm object-cover" />
-              {lang === 'en' ? 'PIE' : '派派'}
+              <img src="/paipai.jpeg" alt={tChat('name')} className="w-5 h-5 rounded-sm object-cover" />
+              {tChat('name')}
             </button>
             <button
               onClick={() => setActiveSidebar('discussion')}
@@ -187,25 +190,25 @@ export function TextbookPlatform({ sections, initialChapterData, currentSlug }: 
               }`}
             >
               <MessageCircle size={16} />
-              Discussion
+              {t('discussion')}
             </button>
           </div>
           
           {/* Close Button */}
           <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
             <span className="text-xs text-gray-400 dark:text-gray-500">
-              {isAIOpen 
-                ? '' 
-                : activeBlockId 
-                  ? `Commenting on block...` 
-                  : 'Chapter comments'
+              {isAIOpen
+                ? ''
+                : activeBlockId
+                  ? t('commentingOnBlock')
+                  : t('chapterComments')
               }
             </span>
             <div className="flex items-center gap-2">
               <button 
                 onClick={closeSidebar}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                title="Close Sidebar"
+                title={t('closeSidebar')}
               >
                 <X size={16} />
               </button>
@@ -240,9 +243,9 @@ export function TextbookPlatform({ sections, initialChapterData, currentSlug }: 
           onClick={toggleAI}
           className="fixed bottom-6 right-6 z-40 p-0 bg-white border-2 border-blue-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 group print:hidden w-16 h-16 overflow-hidden"
         >
-          <img src="/paipai.jpeg" alt="派派" className="w-full h-full object-cover" />
+          <img src="/paipai.jpeg" alt={tChat('name')} className="w-full h-full object-cover" />
           <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            {lang === 'en' ? 'Chat with PIE' : '召唤派派'}
+            {t('chatWithPie')}
           </span>
         </button>
       )}

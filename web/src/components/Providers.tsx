@@ -20,7 +20,7 @@ interface ProvidersProps {
 function IntlProvider({ children }: { children: ReactNode }) {
   const { lang } = useLang()
   return (
-    <NextIntlClientProvider locale={lang} messages={MESSAGES[lang]}>
+    <NextIntlClientProvider locale={lang} messages={MESSAGES[lang]} timeZone="Asia/Shanghai">
       {children}
     </NextIntlClientProvider>
   )

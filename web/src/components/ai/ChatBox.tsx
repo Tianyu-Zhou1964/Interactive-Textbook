@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { Send, User, Trash2, Square, Eye, EyeOff } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
@@ -25,12 +26,11 @@ interface ChatBoxProps {
 }
 
 export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
+  const t = useTranslations('chat')
   const initialGreeting: Message = {
     id: 'greeting',
     role: 'ai',
-    content: lang === 'en'
-      ? "Hi! I'm PIE, the AI teaching assistant created by the author \"阡陌交通_\". Ask me anything about the \"Handmaking LLM\" tutorial series!"
-      : '你好！我叫派派，我是教材作者阡陌交通_创造的助教。关于《手撕 AI 大模型》这套教程的任何问题，我都能帮你解答，咱们开始吧！'
+    content: t('greeting')
   }
 
   const { user } = useAuth()
@@ -207,7 +207,7 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
         // 用户点了停止：reader 已被 cancel，标记 [Stopped] 后退出循环
         if (stoppedRef.current) {
           setMessages(prev => prev.map(m =>
-            m.id === aiMsgId ? { ...m, content: m.content + ' [Stopped]' } : m
+            m.id === aiMsgId ? { ...m, content: m.content + ' ' + t('stopped') } : m
           ))
           break
         }
@@ -240,14 +240,14 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
       // 静默处理、不打 console.error，否则会触发 Next.js dev 错误覆盖层。
       if (e?.name === 'AbortError') {
         setMessages(prev => prev.map(m =>
-          m.id === aiMsgId ? { ...m, content: m.content + ' [Stopped]' } : m
+          m.id === aiMsgId ? { ...m, content: m.content + ' ' + t('stopped') } : m
         ))
       } else {
         console.error('[ChatBox] Request failed:', e)
         const isNetworkError = e?.message === 'Failed to fetch' || e?.name === 'TypeError' || e?.code === 'ECONNRESET'
         const friendlyMsg = isNetworkError
-          ? `无法连接后端 (${API_URL})。请确认：1) 后端服务已启动 2) .env.local 中 NEXT_PUBLIC_API_URL 是否正确（本地开发可用 http://localhost:8000）`
-          : ('Error: ' + (e?.message || String(e)))
+          ? t('connectionError', { apiUrl: API_URL })
+          : t('genericError', { message: e?.message || String(e) })
         setMessages(prev => prev.map(m => 
           m.id === aiMsgId ? { ...m, content: friendlyMsg, isError: true } : m
         ))
@@ -265,21 +265,21 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-            <img src="/paipai.jpeg" alt="派派" className="w-full h-full object-cover" />
+            <img src="/paipai.jpeg" alt={t('name')} className="w-full h-full object-cover" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 dark:text-gray-100">派派</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{loading ? (lang === 'en' ? 'Thinking...' : '思考中...') : (lang === 'en' ? 'Online' : '在线')}</p>
+            <h3 className="font-bold text-gray-900 dark:text-gray-100">{t('name')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{loading ? t('thinking') : t('online')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {/* 视觉开关：开启后提问会把当前页面截图一并发给模型。仅登录用户可用。 */}
           <span className="hidden sm:block text-xs text-gray-500 dark:text-gray-400 max-w-[160px] text-right leading-tight">
             {!user
-              ? (lang === 'en' ? 'Log in to let PIE see your screen' : '登录后可让派派看到你当前的画面')
+              ? t('visionLoginHint')
               : visionEnabled
-                ? (lang === 'en' ? 'PIE can see your current screen' : '派派能看到你当前的画面')
-                : (lang === 'en' ? 'Let PIE see your current screen' : '让派派看到你当前的画面')}
+                ? t('visionOnHint')
+                : t('visionOffHint')}
           </span>
           <button
             onClick={() => setVisionEnabled(v => !v)}
@@ -293,10 +293,10 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
             }`}
             title={
               !user
-                ? (lang === 'en' ? 'Log in to use vision' : '登录后才能使用视觉功能')
+                ? t('visionLoginTitle')
                 : visionEnabled
-                  ? (lang === 'en' ? 'Vision ON: I can see your current page' : '视觉已开启：我能看到你当前的页面')
-                  : (lang === 'en' ? 'Vision OFF: click to let me see your page' : '视觉已关闭：点击让我看你的页面')
+                  ? t('visionOnTitle')
+                  : t('visionOffTitle')
             }
             aria-pressed={visionEnabled}
           >
@@ -305,7 +305,7 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
           <button
             onClick={() => setMessages([initialGreeting])}
             className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
-            title={lang === 'en' ? 'Clear conversation' : '清空对话'}
+            title={t('clearConversation')}
           >
             <Trash2 size={18} className="text-gray-500 dark:text-gray-400" />
           </button>
@@ -318,7 +318,7 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
           <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             {msg.role === 'ai' ? (
               <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border-2 border-blue-200 dark:border-blue-700">
-                <img src="/paipai.jpeg" alt="派派" className="w-full h-full object-cover" />
+                <img src="/paipai.jpeg" alt={t('name')} className="w-full h-full object-cover" />
               </div>
             ) : (
               <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border-2 bg-gray-800 border-gray-800 text-white">
@@ -374,7 +374,7 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={loading ? (lang === 'en' ? 'Generating...' : '生成中...') : (lang === 'en' ? 'Ask a question...' : '输入问题...')}
+            placeholder={loading ? t('generating') : t('inputPlaceholder')}
             disabled={loading}
             className="w-full border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-4 py-3 pr-14 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-blue-500 transition-all disabled:bg-gray-50 dark:disabled:bg-gray-800"
           />

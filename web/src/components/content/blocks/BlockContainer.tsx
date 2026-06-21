@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Pencil, Plus, MessageSquare } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -19,6 +20,7 @@ interface BlockContainerProps {
 
 export function BlockContainer({ blockId, blockIndex, children, commentCount = 0, onAddCodeBelow, onComment, onEdit }: BlockContainerProps) {
   const { user } = useAuth()
+  const t = useTranslations('blockContainer')
   const [isHovered, setIsHovered] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -29,7 +31,7 @@ export function BlockContainer({ blockId, blockIndex, children, commentCount = 0
 
   const handleEditClick = () => {
     if (!user) {
-      flash('登录后可提交修改建议')
+      flash(t('loginToEdit'))
       return
     }
     onEdit(blockId)
@@ -37,11 +39,11 @@ export function BlockContainer({ blockId, blockIndex, children, commentCount = 0
 
   const handleAddClick = () => {
     if (!user) {
-      flash('登录后可提议新增代码块')
+      flash(t('loginToAdd'))
       return
     }
     // 第二阶段接入「新增块走审核」，暂提示即将开放
-    flash('新增代码块功能即将开放')
+    flash(t('addComingSoon'))
   }
 
   return (
@@ -60,7 +62,7 @@ export function BlockContainer({ blockId, blockIndex, children, commentCount = 0
         <button
           onClick={() => onComment(blockId)}
           className="absolute right-2 bottom-2 flex items-center gap-1 px-1.5 py-0.5 text-xs text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors rounded"
-          title={`${commentCount} 条讨论`}
+          title={t('commentCountTitle', { count: commentCount })}
         >
           <MessageSquare size={12} />
           <span>{commentCount}</span>
@@ -75,7 +77,7 @@ export function BlockContainer({ blockId, blockIndex, children, commentCount = 0
         <button
           onClick={handleAddClick}
           className="p-1.5 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg transition-colors flex items-center justify-center"
-          title={user ? '提议在此处新增代码块' : '登录后可提议新增代码块'}
+          title={user ? t('addTitle') : t('loginToAdd')}
         >
           <Plus size={16} />
         </button>
@@ -84,7 +86,7 @@ export function BlockContainer({ blockId, blockIndex, children, commentCount = 0
         <button
           onClick={() => onComment(blockId)}
           className="p-1.5 bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg transition-colors flex items-center justify-center"
-          title="评论此区块"
+          title={t('commentTitle')}
         >
           <MessageSquare size={16} />
         </button>
@@ -97,7 +99,7 @@ export function BlockContainer({ blockId, blockIndex, children, commentCount = 0
               ? 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30'
               : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
           }`}
-          title={user ? '提交修改建议' : '登录后可提交修改建议'}
+          title={user ? t('editTitle') : t('loginToEdit')}
         >
           <Pencil size={16} />
         </button>

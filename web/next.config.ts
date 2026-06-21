@@ -1,3 +1,8 @@
+import createNextIntlPlugin from 'next-intl/plugin'
+
+// 指向服务端兜底配置（实际 locale 仍由客户端 LanguageContext 决定）
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
@@ -10,4 +15,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

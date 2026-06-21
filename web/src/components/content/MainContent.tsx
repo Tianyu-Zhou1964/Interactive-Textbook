@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { MessageCircle, BookOpen, Loader2, Download } from 'lucide-react'
 import { ContentBlock } from '@/lib/data-service'
 import { filterBlocksForPyTorch } from '@/lib/block-filter'
@@ -61,6 +62,7 @@ export function MainContent({
   onCommentBlock,
   onLangSwitch
 }: MainContentProps) {
+  const t = useTranslations('mainContent')
   // Local blocks state (includes both DB blocks and newly added ones)
   const [localBlocks, setLocalBlocks] = useState<LocalBlock[]>([])
   
@@ -257,23 +259,23 @@ export function MainContent({
       {/* ===== TOP TOOLBAR ===== */}
       <div className="sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-4 md:px-8 py-3 flex items-center justify-between shadow-sm print:hidden">
         {/* Left: Branding / Breadcrumb */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
            <div className="bg-indigo-600 text-white p-1.5 rounded-lg">
              <BookOpen size={20} />
            </div>
-           <span className="font-semibold text-gray-800 dark:text-gray-200 hidden sm:block">{lang === 'en' ? 'Handmaking LLM' : '手撕 AI 大模型'}</span>
-           <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-md border border-amber-200/50 dark:border-amber-800/50 whitespace-nowrap">{lang === 'en' ? 'Beta' : 'Beta 测试中'}</span>
+           <span className="font-semibold text-gray-800 dark:text-gray-200 hidden sm:block">{t('bookTitle')}</span>
+           <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-md border border-amber-200/50 dark:border-amber-800/50 whitespace-nowrap">{t('beta')}</span>
         </div>
 
-        {/* Center: Title */}
-        <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none hidden md:block">
+        {/* Center: Title（进入 flex 流并可收缩 truncate，避免面板打开后压窄时与左右按钮重叠） */}
+        <div className="flex-1 min-w-0 justify-center px-4 hidden lg:flex">
           <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-gray-800/80 px-4 py-1.5 rounded-full shadow-sm max-w-[300px] truncate border border-gray-100 dark:border-gray-700">
             {chapterTitle}
           </span>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
           {/* AI Assistant Button (派派) */}
           <button
             onClick={onToggleAI}
@@ -282,10 +284,10 @@ export function MainContent({
                 ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-transparent shadow-md' 
                 : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
-            title="派派"
+            title={t('assistant')}
           >
-            <img src="/paipai.jpeg" alt="派派" className="w-5 h-5 rounded-sm object-cover" />
-            <span className="hidden lg:inline">派派</span>
+            <img src="/paipai.jpeg" alt={t('assistant')} className="w-5 h-5 rounded-sm object-cover" />
+            <span className="hidden lg:inline">{t('assistant')}</span>
           </button>
 
           {/* Discussion Button */}
@@ -296,27 +298,27 @@ export function MainContent({
                 ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-transparent shadow-md' 
                 : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
-            title="Chapter Discussion"
+            title={t('discussionTitle')}
           >
             <MessageCircle size={18} />
-            <span className="hidden lg:inline">{lang === 'en' ? 'Discussion' : '讨论'}</span>
+            <span className="hidden lg:inline">{t('discussion')}</span>
           </button>
 
           {/* Download PDF Button */}
           <button
             onClick={handleDownloadPDF}
             className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-2 rounded-lg text-sm font-medium transition-all border bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-            title="下载 PDF 课件"
+            title={t('downloadPDFTitle')}
           >
             <Download size={18} />
-            <span className="hidden lg:inline">{lang === 'en' ? 'Download PDF' : '下载 PDF'}</span>
+            <span className="hidden lg:inline">{t('downloadPDF')}</span>
           </button>
 
           {/* Language Toggle */}
           <button
             onClick={onLangSwitch}
             className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-2 rounded-lg text-sm font-medium transition-all border bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-            title="切换语言 / Switch Language"
+            title={t('switchLang')}
           >
             <span>{lang === 'zh' ? 'EN' : '中'}</span>
           </button>
@@ -335,7 +337,7 @@ export function MainContent({
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-              <span className="text-gray-500 dark:text-gray-400 font-medium">正在加载章节...</span>
+              <span className="text-gray-500 dark:text-gray-400 font-medium">{t('loadingChapter')}</span>
             </div>
           </div>
         ) : (
@@ -345,7 +347,7 @@ export function MainContent({
             <div className="mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{chapterTitle}</h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {displayBlocks.length} cells • {displayBlocks.filter(b => b.type === 'code').length} code blocks
+                {t('cellsSummary', { cells: displayBlocks.length, code: displayBlocks.filter(b => b.type === 'code').length })}
               </p>
             </div>
             
@@ -398,7 +400,7 @@ export function MainContent({
             {displayBlocks.length === 0 && (
               <div className="text-center text-gray-400 dark:text-gray-500 py-20">
                 <BookOpen size={48} className="mx-auto mb-4 opacity-50" />
-                <p>暂无内容</p>
+                <p>{t('noContent')}</p>
               </div>
             )}
           </div>
