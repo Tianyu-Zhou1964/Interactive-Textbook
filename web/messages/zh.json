@@ -1,0 +1,21 @@
+{
+  "common": {
+    "cancel": "取消"
+  },
+  "suggestion": {
+    "title": "提交修改建议",
+    "subtitle": "你的修改将由管理员审核",
+    "codeBlock": "代码块",
+    "markdownBlock": "文本块",
+    "charsModified": "改动：{count} 个字符",
+    "reasonLabel": "修改理由",
+    "reasonPlaceholder": "例如：修正变量名拼写、优化循环性能、补充缺失的导入……",
+    "reasonHint": "请具体说明你改了什么、为什么。这能帮助审核者更快通过。",
+    "submit": "提交建议",
+    "submitting": "提交中…",
+    "loginRequired": "请先登录后再提交",
+    "needReason": "请填写修改理由",
+    "success": "建议已提交，等待审核！",
+    "failed": "提交失败，请重试"
+  }
+}

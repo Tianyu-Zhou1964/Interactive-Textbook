@@ -7,6 +7,7 @@ import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import 'katex/dist/katex.min.css'
 import html2canvas from 'html2canvas'
+import { useAuth } from '@/contexts/AuthContext'
 
 // API URL from environment variable（本地开发可在 .env.local 中设 NEXT_PUBLIC_API_URL=http://localhost:8000）
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '')
@@ -16,7 +17,6 @@ type Message = {
   role: 'user' | 'ai'
   content: string
   isError?: boolean
-  references?: string[]
 }
 
 interface ChatBoxProps {
@@ -33,11 +33,18 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
       : '你好！我叫派派，我是教材作者阡陌交通_创造的助教。关于《手撕 AI 大模型》这套教程的任何问题，我都能帮你解答，咱们开始吧！'
   }
 
+  const { user } = useAuth()
   const [messages, setMessages] = useState<Message[]>([initialGreeting])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   // 视觉功能开关：开启后每次提问会截取当前页面发给模型。默认关闭，由用户在对话框内切换。
+  // 仅登录用户可用。
   const [visionEnabled, setVisionEnabled] = useState(visionSync)
+
+  // 退出登录或未登录时，强制关闭视觉，避免越权使用
+  useEffect(() => {
+    if (!user && visionEnabled) setVisionEnabled(false)
+  }, [user, visionEnabled])
   const scrollRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
@@ -136,8 +143,8 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
     // Vision Sync Logic
     let imageData: string | null = null
     
-    if (visionEnabled) {
-      // 视觉开启：每次提问都重新截取当前页面
+    if (visionEnabled && user) {
+      // 视觉开启（且已登录）：每次提问都重新截取当前页面
       imageData = await captureScreen()
 
       if (!imageData) {
@@ -217,10 +224,6 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
               setMessages(prev => prev.map(m => 
                 m.id === aiMsgId ? { ...m, content: m.content + data.content } : m
               ))
-            } else if (data.type === 'done') {
-              setMessages(prev => prev.map(m => 
-                m.id === aiMsgId ? { ...m, references: data.references } : m
-              ))
             } else if (data.type === 'error') {
               throw new Error(data.content)
             }
@@ -269,19 +272,31 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
             <p className="text-xs text-gray-500 dark:text-gray-400">{loading ? (lang === 'en' ? 'Thinking...' : '思考中...') : (lang === 'en' ? 'Online' : '在线')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          {/* 视觉开关：开启后提问会把当前页面截图一并发给模型 */}
+        <div className="flex items-center gap-2">
+          {/* 视觉开关：开启后提问会把当前页面截图一并发给模型。仅登录用户可用。 */}
+          <span className="hidden sm:block text-xs text-gray-500 dark:text-gray-400 max-w-[160px] text-right leading-tight">
+            {!user
+              ? (lang === 'en' ? 'Log in to let PIE see your screen' : '登录后可让派派看到你当前的画面')
+              : visionEnabled
+                ? (lang === 'en' ? 'PIE can see your current screen' : '派派能看到你当前的画面')
+                : (lang === 'en' ? 'Let PIE see your current screen' : '让派派看到你当前的画面')}
+          </span>
           <button
             onClick={() => setVisionEnabled(v => !v)}
+            disabled={!user}
             className={`p-2 rounded-full transition-colors ${
-              visionEnabled
-                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
-                : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'
+              !user
+                ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                : visionEnabled
+                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'
             }`}
             title={
-              visionEnabled
-                ? (lang === 'en' ? 'Vision ON: I can see your current page' : '视觉已开启：我能看到你当前的页面')
-                : (lang === 'en' ? 'Vision OFF: click to let me see your page' : '视觉已关闭：点击让我看你的页面')
+              !user
+                ? (lang === 'en' ? 'Log in to use vision' : '登录后才能使用视觉功能')
+                : visionEnabled
+                  ? (lang === 'en' ? 'Vision ON: I can see your current page' : '视觉已开启：我能看到你当前的页面')
+                  : (lang === 'en' ? 'Vision OFF: click to let me see your page' : '视觉已关闭：点击让我看你的页面')
             }
             aria-pressed={visionEnabled}
           >
@@ -346,12 +361,6 @@ export function ChatBox({ visionSync = false, lang = 'zh' }: ChatBoxProps) {
                 </div>
               ) : (
                 msg.content
-              )}
-              
-              {msg.references && msg.references.length > 0 && (
-                <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
-                  参考来源: {msg.references.join(', ')}
-                </div>
               )}
             </div>
           </div>

@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_URL, authFetch } from '@/lib/api'
 import { MessageCircle, Send, X, Clock, ThumbsUp, Reply, ChevronDown, ArrowLeft, Loader2 } from 'lucide-react'
 
 interface Comment {
@@ -171,13 +170,12 @@ export function ChapterDiscussion({
     }
 
     try {
-      const response = await fetch(`${API_URL}/comments`, {
+      // 评论允许匿名；若已登录，authFetch 会带上 token，后端据此填真实 user_id
+      const response = await authFetch(`/comments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           block_id: activeBlockId,
           content: newComment.trim(),
-          user_id: 'anonymous'
         })
       })
       

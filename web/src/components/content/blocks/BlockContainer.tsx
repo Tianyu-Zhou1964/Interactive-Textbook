@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Pencil, Plus, MessageSquare } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 // =====================================================
 // BLOCK CONTAINER - Notion-like wrapper with hover actions
@@ -13,21 +14,34 @@ interface BlockContainerProps {
   commentCount?: number
   onAddCodeBelow: (afterIndex: number) => void
   onComment: (blockId: string) => void
+  onEdit: (blockId: string) => void
 }
 
-export function BlockContainer({ blockId, blockIndex, children, commentCount = 0, onAddCodeBelow, onComment }: BlockContainerProps) {
+export function BlockContainer({ blockId, blockIndex, children, commentCount = 0, onAddCodeBelow, onComment, onEdit }: BlockContainerProps) {
+  const { user } = useAuth()
   const [isHovered, setIsHovered] = useState(false)
-  const [showEditToast, setShowEditToast] = useState(false)
-  const [showAddToast, setShowAddToast] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const flash = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2000)
+  }
 
   const handleEditClick = () => {
-    setShowEditToast(true)
-    setTimeout(() => setShowEditToast(false), 2000)
+    if (!user) {
+      flash('登录后可提交修改建议')
+      return
+    }
+    onEdit(blockId)
   }
 
   const handleAddClick = () => {
-    setShowAddToast(true)
-    setTimeout(() => setShowAddToast(false), 2000)
+    if (!user) {
+      flash('登录后可提议新增代码块')
+      return
+    }
+    // 第二阶段接入「新增块走审核」，暂提示即将开放
+    flash('新增代码块功能即将开放')
   }
 
   return (
@@ -57,11 +71,11 @@ export function BlockContainer({ blockId, blockIndex, children, commentCount = 0
       <div className={`absolute right-2 top-2 flex flex-col gap-1.5 transition-all duration-200 z-20 ${
         isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2 pointer-events-none'
       }`}>
-        {/* Add Code Button - 提示暂不可用 */}
+        {/* Add Code Button */}
         <button
           onClick={handleAddClick}
-          className="p-1.5 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg transition-colors flex items-center justify-center cursor-not-allowed"
-          title="添加代码功能暂时不可用"
+          className="p-1.5 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg transition-colors flex items-center justify-center"
+          title={user ? '提议在此处新增代码块' : '登录后可提议新增代码块'}
         >
           <Plus size={16} />
         </button>
@@ -75,27 +89,24 @@ export function BlockContainer({ blockId, blockIndex, children, commentCount = 0
           <MessageSquare size={16} />
         </button>
 
-        {/* Edit Button - 提示暂不可用 */}
+        {/* Edit Button */}
         <button
           onClick={handleEditClick}
-          className="p-1.5 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg transition-colors flex items-center justify-center cursor-not-allowed"
-          title="编辑功能暂时不可用"
+          className={`p-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg transition-colors flex items-center justify-center ${
+            user
+              ? 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30'
+              : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
+          }`}
+          title={user ? '提交修改建议' : '登录后可提交修改建议'}
         >
           <Pencil size={16} />
         </button>
       </div>
 
-      {/* 添加功能不可用提示 */}
-      {showAddToast && (
+      {/* 操作提示 */}
+      {toast && (
         <div className="absolute right-14 top-2 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-30 animate-in fade-in duration-200">
-          添加功能暂时不可用
-        </div>
-      )}
-
-      {/* 编辑不可用提示 */}
-      {showEditToast && (
-        <div className="absolute right-14 top-[72px] bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-30 animate-in fade-in duration-200">
-          编辑功能暂时不可用
+          {toast}
         </div>
       )}
     </div>

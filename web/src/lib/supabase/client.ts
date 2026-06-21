@@ -13,5 +13,12 @@ if (typeof window === 'undefined') {
 }
 
 export const supabase = (supabaseUrl && supabaseAnonKey)
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        // 持久化登录态，刷新页面后保持登录；自动处理魔法链接回跳 URL 中的 token。
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
   : null

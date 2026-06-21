@@ -23,7 +23,7 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
   const [localResult, setLocalResult] = useState<ExecutionResult | null>(null)
   const [isRunning, setIsRunning] = useState(false)
 
-  const { isReady, isLoading: pyodideLoading, loadError, runCode } = usePyodide()
+  const { isReady, isLoading: pyodideLoading, loadError, loadProgress, runCode } = usePyodide()
 
   const language = extractCodeLanguage(content)
   // For interactive blocks, show the edited code. For static blocks, show the prop content.
@@ -36,7 +36,8 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
   }, [displayCode])
 
   const handleRun = useCallback(async () => {
-    if (!isReady || isRunning) return
+    // 首次点击会惰性下载 Pyodide（runCode 内部自动处理），无需等待 isReady
+    if (isRunning) return
 
     setIsRunning(true)
     setLocalResult(null)
@@ -57,7 +58,7 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
     } finally {
       setIsRunning(false)
     }
-  }, [isReady, isRunning, editableCode, content, isInteractive, runCode])
+  }, [isRunning, editableCode, content, isInteractive, runCode])
 
   return (
     <div className={`my-6 rounded-xl overflow-hidden border shadow-lg bg-gray-900 group ${
@@ -74,15 +75,15 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
           </span>
           <span className="text-xs text-gray-400">{language}</span>
 
-          {/* Pyodide Status */}
+          {/* Pyodide 状态：浏览器内运行时，首次点击 Run 才惰性加载 */}
           {pyodideLoading && (
-            <span className="text-xs text-yellow-400 animate-pulse">Loading Pyodide...</span>
+            <span className="text-xs text-yellow-400 animate-pulse">{loadProgress || '加载中...'}</span>
           )}
-          {loadError && (
-            <span className="text-xs text-red-400">Load Error</span>
+          {loadError && !pyodideLoading && (
+            <span className="text-xs text-red-400" title={loadError}>加载失败</span>
           )}
           {isReady && !pyodideLoading && (
-            <span className="text-xs text-green-400">Ready</span>
+            <span className="text-xs text-green-400">浏览器内核就绪</span>
           )}
         </div>
 
@@ -90,9 +91,9 @@ export function JupyterCodeCell({ content, cellIndex, isInteractive = false, onD
           {/* Run Button */}
           <button
             onClick={handleRun}
-            disabled={!isReady || isRunning}
+            disabled={isRunning || pyodideLoading}
             className={`flex items-center gap-1 px-3 py-1 text-xs rounded-md font-medium transition-colors ${
-              isReady && !isRunning
+              !isRunning && !pyodideLoading
                 ? 'bg-green-600 hover:bg-green-500 text-white'
                 : 'bg-gray-700 text-gray-400 cursor-not-allowed'
             }`}

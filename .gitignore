@@ -38,3 +38,4 @@ access.log
 # 7. 屏蔽本地环境与个人笔记
 .envrc
 开发日志/
+.backup/

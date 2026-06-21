@@ -6,6 +6,7 @@ import { ContentBlock } from '@/lib/data-service'
 import { filterBlocksForPyTorch } from '@/lib/block-filter'
 import { SuggestionModal } from '@/components/ui/SuggestionModal'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { AuthButton } from '@/components/auth/AuthButton'
 import { BlockContainer } from '@/components/content/blocks/BlockContainer'
 import { JupyterCodeCell } from '@/components/content/blocks/JupyterCodeCell'
 import { MarkdownCell } from '@/components/content/blocks/MarkdownCell'
@@ -322,6 +323,9 @@ export function MainContent({
 
           {/* Theme Toggle */}
           <ThemeToggle />
+
+          {/* 登录 / 登出 */}
+          <AuthButton />
         </div>
       </div>
 
@@ -374,6 +378,7 @@ export function MainContent({
                     commentCount={commentCounts[block.id] || 0}
                     onAddCodeBelow={handleAddCodeBelow}
                     onComment={handleCommentBlock}
+                    onEdit={(id) => setEditingBlockId(id)}
                   >
                     {isCodeBlock ? (
                       <JupyterCodeCell 

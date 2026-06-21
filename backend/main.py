@@ -1,16 +1,10 @@
 import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
 from config import logger
-from routers import router, limiter
+from routers import router
 
 app = FastAPI()
-
-# --- 频率限制 ---
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- 访问日志中间件 ---
 @app.middleware("http")

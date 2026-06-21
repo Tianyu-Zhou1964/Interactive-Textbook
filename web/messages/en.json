@@ -1,0 +1,21 @@
+{
+  "common": {
+    "cancel": "Cancel"
+  },
+  "suggestion": {
+    "title": "Submit Suggestion",
+    "subtitle": "Your changes will be reviewed by an admin",
+    "codeBlock": "Code Block",
+    "markdownBlock": "Markdown Block",
+    "charsModified": "Changes: {count} characters modified",
+    "reasonLabel": "Reason for this change",
+    "reasonPlaceholder": "e.g., Fix typo in variable name, Optimize loop performance, Add missing import...",
+    "reasonHint": "Be specific about what you changed and why. This helps reviewers approve faster.",
+    "submit": "Submit Suggestion",
+    "submitting": "Submitting...",
+    "loginRequired": "Please log in before submitting",
+    "needReason": "Please provide a reason for your suggestion",
+    "success": "Suggestion submitted for review!",
+    "failed": "Failed to submit suggestion"
+  }
+}

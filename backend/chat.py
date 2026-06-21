@@ -1,20 +1,15 @@
-import io
 import json
-import base64
-import contextlib
-import traceback
 import httpx
-import matplotlib.pyplot as plt
-from typing import List, AsyncIterator
+from typing import AsyncIterator
 
 from config import (
     logger,
-    QWEN_API_URL, QWEN_API_KEY, GLOBAL_NAMESPACE,
+    QWEN_API_URL, QWEN_API_KEY,
 )
 
 
 # ============================================
-# LLM 流式调用
+# LLM 流式调用（纯系统提示词驱动，无 RAG 检索）
 # ============================================
 IDENTITY_PROMPT_ZH = (
     "你叫派派，是教材作者\"阡陌交通_\"创造的智能助教。\n"
@@ -61,7 +56,7 @@ async def stream_chat(
         for msg in history[-10:]:
             messages.append({"role": msg["role"], "content": msg["content"]})
 
-        # 2. 当前 query（可能带图片）
+        # 当前 query（可能带图片）
         if image and len(image) < 2 * 1024 * 1024:
             messages.append({
                 "role": "user",
@@ -73,7 +68,7 @@ async def stream_chat(
         else:
             messages.append({"role": "user", "content": query})
 
-        # 3. 调用 Qwen
+        # 调用 Qwen
         async with httpx.AsyncClient(timeout=60.0) as client:
             async with client.stream(
                 "POST",
@@ -104,61 +99,7 @@ async def stream_chat(
                     except Exception:
                         pass
 
-        yield json.dumps({"type": "done", "references": []}, ensure_ascii=False) + "\n"
+        yield json.dumps({"type": "done"}, ensure_ascii=False) + "\n"
 
     except Exception as e:
         yield json.dumps({"type": "error", "content": str(e)}, ensure_ascii=False) + "\n"
-
-
-# ============================================
-# 代码执行沙箱
-# ============================================
-DANGEROUS_KEYWORDS = [
-    "os.", "sys.", "subprocess", "shutil", "__import__",
-    "open(", "write(", "remove(", "unlink(", "rmdir(",
-    "socket", "getattr", "setattr", "eval(", "exec(", "globals(",
-]
-
-
-def audit_code(code: str) -> str | None:
-    """检查危险关键字，返回被拦截的关键字或 None。"""
-    for kw in DANGEROUS_KEYWORDS:
-        if kw in code:
-            return kw
-    return None
-
-
-def execute_code(code: str) -> dict:
-    """在受限全局命名空间中执行代码，返回结果字典。"""
-    stdout_capture = io.StringIO()
-    stderr_capture = io.StringIO()
-    plot_base64 = None
-    exec_error = None
-    success = False
-
-    try:
-        plt.clf()
-        plt.close("all")
-
-        with contextlib.redirect_stdout(stdout_capture), contextlib.redirect_stderr(stderr_capture):
-            exec(code, GLOBAL_NAMESPACE)
-
-            if plt.get_fignums():
-                img_buf = io.BytesIO()
-                plt.savefig(img_buf, format="png", bbox_inches="tight", dpi=100, facecolor="white")
-                img_buf.seek(0)
-                plot_base64 = base64.b64encode(img_buf.read()).decode("utf-8")
-                plt.close("all")
-
-        success = True
-    except Exception:
-        exec_error = traceback.format_exc()
-        plt.close("all")
-
-    return {
-        "stdout": stdout_capture.getvalue(),
-        "stderr": stderr_capture.getvalue(),
-        "error": exec_error,
-        "plotBase64": plot_base64,
-        "success": success,
-    }
